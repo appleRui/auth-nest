@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - '4000:4000'
+    volumes:
+      - .:/auth-nest
+    depends_on:
+      - mysql
+    command: yarn run start:dev
+
+  mysql:
+    image: mysql:8.0
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: development
+      MYSQL_USER: developmentUser
+      MYSQL_PASSWORD: developmentest1
+      MYSQL_ROOT_PASSWORD: rootest100
+    volumes:
+      - /var/lib/mysql
