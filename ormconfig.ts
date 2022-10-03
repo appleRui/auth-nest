@@ -1,3 +1,4 @@
+import { User } from 'src/entities/User';
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 
 const ormConfig: MysqlConnectionOptions = {
@@ -7,11 +8,8 @@ const ormConfig: MysqlConnectionOptions = {
   username: 'developmentUser',
   password: 'developmentest1',
   database: 'development',
-  entities: ['dist/src/**/*.entity.js'],
-  migrations: ['dist/src/migration/**/*.js'],
-  cli: {
-    migrationsDir: 'src/migration',
-  },
+  entities: [User],
+  synchronize: true,
 };
 
 export default ormConfig;
