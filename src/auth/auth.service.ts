@@ -12,18 +12,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async searchUser(name: string) {
+  async searchUser(email: string) {
     const user = await this.userRepository.findOne({
       where: {
-        name,
+        email,
       },
     });
     if (!user) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     return user;
   }
 
-  async validateUser(name: string, password: string): Promise<User> {
-    const user = await this.searchUser(name);
+  async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.searchUser(email);
     const isMatch = await bcrypt.compare(password, user.password);
     if (user && isMatch) {
       return user;
@@ -32,7 +32,7 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const payload = { name: user.name, sub: user.id };
+    const payload = { name: user.name, email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
     };
