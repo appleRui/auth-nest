@@ -21,7 +21,7 @@ export class UsersService {
     return await this.userRepository.save(body);
   }
 
-  async findOne(userId) {
+  async findOne(userId: number) {
     const user = await this.userRepository.findOne(userId);
     if (!user) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     return user;
