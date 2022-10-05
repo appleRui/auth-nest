@@ -13,6 +13,7 @@ export class AuthService {
   ) {}
 
   async searchUser(email: string) {
+    console.log('searchUser');
     const user = await this.userRepository.findOne({
       where: {
         email,
@@ -24,8 +25,8 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.searchUser(email);
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (user && isMatch) {
+    const isMatchPassword = await bcrypt.compare(password, user.password);
+    if (user && isMatchPassword) {
       return user;
     }
     return undefined;
