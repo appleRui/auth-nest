@@ -13,13 +13,6 @@ export class UsersService {
     return await this.userRepository.find();
   }
 
-  // ユーザー作成時に作成用
-  // async create(body: CreateUserDto): Promise<User> {
-  //   body.email = body.email.toLowerCase();
-  //   body.password = await bcrypt.hash(body.password, 10);
-  //   return await this.userRepository.save(body);
-  // }
-
   async findOne(userId: number) {
     const user = await this.userRepository.findOne({
       where: {
