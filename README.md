@@ -29,6 +29,6 @@ docker compose up -d --build
 
 [✓] ユーザーの作成
 
-[　] ログインのたびに、一時的なトークン(verifyToken)の発行
+[✓] ログインのたびに、確認トークン(verifyToken)の発行
 
-[　] AuthenticationとverifyTokenの2つで認証を行う
+[✓] AuthenticationとverifyTokenの2つで認証を行う

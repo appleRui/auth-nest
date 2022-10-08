@@ -15,18 +15,32 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
+  /**
+   * リクエストからJWTと確認トークンを配列で返す
+   * @param request
+   * @returns [authorization, verifytoken]
+   */
   private pullJwtTokenAndVerifyToken = (request: Request): string[] => {
     return [request.headers['authorization'], request.headers['verifytoken']];
   };
 
+  /**
+   * 確認トークンが正しいか確認
+   * @param request
+   * @returns boolean
+   */
   private checkVerifyToken = async (request: Request): Promise<boolean> => {
     const [jwtToken, verifyToken] = this.pullJwtTokenAndVerifyToken(request);
     if (!jwtToken) return false;
     if (!verifyToken) return false;
-    // TODO: JWTが正しい形式でない場合エラー(500)が発生する
-    const payload: JwtPayload = jwt_decode(jwtToken);
-    const userDetail = await this.usersService.findOne(payload.sub);
-    return userDetail.verifyToken === verifyToken;
+    // JWTが正しい形式でない時、エラーが発生したするのでfalseを返す
+    try {
+      const payload: JwtPayload = jwt_decode(jwtToken);
+      const userDetail = await this.usersService.findOne(payload.sub);
+      return userDetail.verifyToken === verifyToken;
+    } catch {
+      return false;
+    }
   };
 
   /**
