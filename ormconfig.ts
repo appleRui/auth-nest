@@ -1,7 +1,7 @@
 import { User } from 'src/entities/User';
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 
-export const ormConfig: MysqlConnectionOptions = {
+const ormConfig: MysqlConnectionOptions = {
   type: 'mysql',
   host: 'mysql',
   port: 3306,
@@ -11,3 +11,5 @@ export const ormConfig: MysqlConnectionOptions = {
   entities: [User],
   synchronize: true,
 };
+
+export default ormConfig;

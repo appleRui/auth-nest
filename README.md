@@ -15,7 +15,20 @@ Docker + NestJS + Typeorm の開発環境
 参考リポジトリ：https://github.com/sig-code/nest-sample
 
 
-### Usage
+### 起動
 ```
 docker compose up -d --build
 ```
+
+### 動作内容
+[✓] Email & Passwordで認証
+
+[✓] JWT認証
+
+[✓] 各ルートで認証ガードが行われる(ミドルウェア・認証ガード)
+
+[✓] ユーザーの作成
+
+[✓] ログインのたびに、確認トークン(verifyToken)の発行
+
+[✓] AuthenticationとverifyTokenの2つで認証を行う
