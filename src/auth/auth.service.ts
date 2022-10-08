@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import { generate } from 'rand-token';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/User';
@@ -14,7 +15,6 @@ export class AuthService {
   ) {}
 
   async searchUser(email: string) {
-    console.log('searchUser');
     const user = await this.userRepository.findOne({
       where: {
         email,
@@ -27,16 +27,24 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.searchUser(email);
     const isMatchPassword = await bcrypt.compare(password, user.password);
-    if (user && isMatchPassword) {
-      return user;
-    }
-    return undefined;
+    if (!user || !isMatchPassword)
+      new HttpException('unAuthorized', HttpStatus.UNAUTHORIZED);
+    return user;
   }
 
   async login(user: User) {
-    const payload = { name: user.name, email: user.email, sub: user.id };
+    const updateUserRefreshToken = await this.userRepository.save({
+      ...user,
+      verifyToken: generate(16),
+    });
+    const payload = {
+      name: updateUserRefreshToken.name,
+      email: updateUserRefreshToken.email,
+      sub: updateUserRefreshToken.id,
+    };
     return {
       access_token: this.jwtService.sign(payload),
+      verifyToken: updateUserRefreshToken.verifyToken,
     };
   }
 
