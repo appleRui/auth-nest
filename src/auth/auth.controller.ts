@@ -10,6 +10,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from 'src/auth/auth.service';
 import { SignUpDto } from 'src/auth/dto/SignUp.dto';
+import { ParseExpiration } from 'src/pipes/parseExpiration';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +29,7 @@ export class AuthController {
   @Get('/verify')
   async verify(
     @Query('signature') signature: string,
-    @Query('expiration') expiration: string,
+    @Query('expiration', new ParseExpiration()) expiration: string,
   ) {
     return this.authService.verify({
       signature,

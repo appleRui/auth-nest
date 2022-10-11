@@ -1,6 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/User';
+import { notFoundErrorHandle } from 'src/utils/httpErrorHandleUtils';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class UsersService {
         id: userId,
       },
     });
-    if (!user) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    if (!user) notFoundErrorHandle();
     return user;
   }
 }

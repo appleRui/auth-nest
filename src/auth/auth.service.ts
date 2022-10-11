@@ -2,15 +2,19 @@
 import * as dayjs from 'dayjs';
 import * as bcrypt from 'bcrypt';
 import { generate } from 'rand-token';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities/User';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/SignUp.dto';
 import { EmailVerification } from 'src/entities/EmailVerification';
-import { find } from 'rxjs';
+import {
+  badRequestErrorHandle,
+  notFoundErrorHandle,
+  unAuthorizedErrorHandle,
+} from 'src/utils/httpErrorHandleUtils';
 
 type VerifyParams = {
   signature: string;
@@ -37,15 +41,14 @@ export class AuthService {
         email,
       },
     });
-    if (!user) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    if (!user) notFoundErrorHandle();
     return user;
   }
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.searchUser(email);
     const isMatchPassword = await bcrypt.compare(password, user.password);
-    if (!user || !isMatchPassword)
-      throw new HttpException('unAuthorized', HttpStatus.UNAUTHORIZED);
+    if (!user || !isMatchPassword) unAuthorizedErrorHandle();
     return user;
   }
 
@@ -69,24 +72,18 @@ export class AuthService {
     user.email = user.email.toLowerCase();
     user.password = await bcrypt.hash(user.password, 10);
     await this.userRepository.save(user).catch((error) => {
-      if (error.driverError.errno === 1062) {
-        throw new HttpException(
+      if (error.driverError.errno === 1062)
+        badRequestErrorHandle(
           'The email address you entered is already in use.',
-          HttpStatus.BAD_REQUEST,
         );
-      } else {
-        throw new HttpException(
-          'An unexpected error has occurred.',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
     });
-    const saveEmailVerily = await this.emailVerificationRepository.save({
-      email: user.email,
-      signature: generate(16),
-      expiration: dayjs().add(30, 'm').valueOf().toString(),
-    });
-    return `https://localhost:4000/verify?signature=${saveEmailVerily.signature}&expiration=${saveEmailVerily.expiration}`;
+    const { signature, expiration } =
+      await this.emailVerificationRepository.save({
+        email: user.email,
+        signature: generate(16),
+        expiration: dayjs().add(30, 'm').valueOf().toString(),
+      });
+    return `http://localhost:4000/auth/verify?signature=${signature}&expiration=${expiration}`;
   }
 
   async verify(params: VerifyParams) {
@@ -96,14 +93,10 @@ export class AuthService {
           signature: params.signature,
         },
       })
-      .catch((error) => {
-        console.error(error);
-        throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-      });
+      .catch(() => notFoundErrorHandle());
     if (!dayjs(findToken.expiration).isBefore(dayjs())) {
-      throw new HttpException(
+      badRequestErrorHandle(
         'This is a link whose expiration has been exceeded.',
-        HttpStatus.BAD_REQUEST,
       );
     }
     const findUser = await this.userRepository.findOne({
@@ -111,12 +104,8 @@ export class AuthService {
         email: findToken.email,
       },
     });
-    if (findUser.isVerify === true) {
-      throw new HttpException(
-        'Already an authorized user.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (findUser.isVerify === true)
+      badRequestErrorHandle('Already an authorized user.');
     const updateVerifyUser = await this.userRepository.save({
       ...findUser,
       isVerify: true,
