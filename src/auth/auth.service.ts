@@ -1,5 +1,5 @@
 // import * as sendgrid from '@sendgrid/mail';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import * as bcrypt from 'bcrypt';
 import { generate } from 'rand-token';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -10,6 +10,11 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/SignUp.dto';
 import { EmailVerification } from 'src/entities/EmailVerification';
+
+type VerifyParams = {
+  signature: string;
+  expiration: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -78,8 +83,37 @@ export class AuthService {
     const saveEmailVerily = await this.emailVerificationRepository.save({
       email: user.email,
       signature: generate(16),
-      expiration: dayjs().add(30, 'm').unix().toString(),
+      expiration: dayjs().add(30, 'm').valueOf().toString(),
     });
     return `https://localhost:4000/verify?signature=${saveEmailVerily.signature}&expiration=${saveEmailVerily.expiration}`;
+  }
+
+  async verify(params: VerifyParams) {
+    const findToken = await this.emailVerificationRepository
+      .findOne({
+        where: {
+          signature: params.signature,
+        },
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+      });
+    if (!dayjs(findToken.expiration).isBefore(dayjs())) {
+      throw new HttpException(
+        'This is a link whose expiration has been exceeded.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const findUser = await this.userRepository.findOne({
+      where: {
+        email: findToken.email,
+      },
+    });
+    const updateVerifyUser = await this.userRepository.save({
+      ...findUser,
+      isVerify: true,
+    });
+    return this.login(updateVerifyUser);
   }
 }

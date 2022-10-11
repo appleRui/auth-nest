@@ -18,6 +18,6 @@ export class User {
   @Column({ nullable: true })
   verifyToken: string | null = null;
 
-  @Column({ type: 'datetime', nullable: true })
-  verify_email_at: string | null = null;
+  @Column('boolean', { default: false })
+  isVerify: boolean;
 }
