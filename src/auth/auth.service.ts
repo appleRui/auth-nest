@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/SignUp.dto';
 import { EmailVerification } from 'src/entities/EmailVerification';
+import { find } from 'rxjs';
 
 type VerifyParams = {
   signature: string;
@@ -110,6 +111,12 @@ export class AuthService {
         email: findToken.email,
       },
     });
+    if (findUser.isVerify === true) {
+      throw new HttpException(
+        'Already an authorized user.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const updateVerifyUser = await this.userRepository.save({
       ...findUser,
       isVerify: true,
