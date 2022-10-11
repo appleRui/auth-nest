@@ -9,10 +9,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
 import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
+import { EmailVerification } from 'src/entities/EmailVerification';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, EmailVerification]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

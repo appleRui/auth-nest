@@ -1,5 +1,6 @@
+// import * as sendgrid from '@sendgrid/mail';
+import dayjs from 'dayjs';
 import * as bcrypt from 'bcrypt';
-import axios from 'axios';
 import { generate } from 'rand-token';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +9,7 @@ import { User } from 'src/entities/User';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/SignUp.dto';
+import { EmailVerification } from 'src/entities/EmailVerification';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,8 @@ export class AuthService {
 
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(EmailVerification)
+    private readonly emailVerificationRepository: Repository<EmailVerification>,
     private readonly jwtService: JwtService,
     private configService: ConfigService,
   ) {
@@ -35,7 +39,7 @@ export class AuthService {
     const user = await this.searchUser(email);
     const isMatchPassword = await bcrypt.compare(password, user.password);
     if (!user || !isMatchPassword)
-      new HttpException('unAuthorized', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('unAuthorized', HttpStatus.UNAUTHORIZED);
     return user;
   }
 
@@ -58,17 +62,24 @@ export class AuthService {
   async signUp(user: SignUpDto) {
     user.email = user.email.toLowerCase();
     user.password = await bcrypt.hash(user.password, 10);
-    const saveUser = await this.userRepository.save(user);
-    await axios.request({
-      method: 'post',
-      url: 'https://api.sendgrid.com/v3/mail/send',
-      headers: {
-        Authorization: `Bearer ${this.MAILGRID_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      data: {},
+    await this.userRepository.save(user).catch((error) => {
+      if (error.driverError.errno === 1062) {
+        throw new HttpException(
+          'The email address you entered is already in use.',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'An unexpected error has occurred.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     });
-    return this.MAILGRID_API_KEY;
-    // return this.login(saveUser);
+    const saveEmailVerily = await this.emailVerificationRepository.save({
+      email: user.email,
+      signature: generate(16),
+      expiration: dayjs().add(30, 'm').unix().toString(),
+    });
+    return `https://localhost:4000/verify?signature=${saveEmailVerily.signature}&expiration=${saveEmailVerily.expiration}`;
   }
 }
