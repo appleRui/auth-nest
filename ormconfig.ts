@@ -4,10 +4,10 @@ import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOpti
 const ormConfig: MysqlConnectionOptions = {
   type: 'mysql',
   host: 'mysql',
-  port: 3306,
-  username: 'developmentUser',
-  password: 'developmentest1',
-  database: 'development',
+  port: Number(process.env.MYSQL_PORT) ?? 3306,
+  username: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
   entities: [User],
   synchronize: true,
 };
