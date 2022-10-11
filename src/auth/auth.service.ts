@@ -1,7 +1,9 @@
 import * as bcrypt from 'bcrypt';
+import axios from 'axios';
 import { generate } from 'rand-token';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { User } from 'src/entities/User';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -9,10 +11,15 @@ import { SignUpDto } from './dto/SignUp.dto';
 
 @Injectable()
 export class AuthService {
+  private MAILGRID_API_KEY: string;
+
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.MAILGRID_API_KEY = this.configService.get<string>('MAILGRID_API_KEY');
+  }
 
   async searchUser(email: string) {
     const user = await this.userRepository.findOne({
@@ -52,6 +59,16 @@ export class AuthService {
     user.email = user.email.toLowerCase();
     user.password = await bcrypt.hash(user.password, 10);
     const saveUser = await this.userRepository.save(user);
-    return this.login(saveUser);
+    await axios.request({
+      method: 'post',
+      url: 'https://api.sendgrid.com/v3/mail/send',
+      headers: {
+        Authorization: `Bearer ${this.MAILGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data: {},
+    });
+    return this.MAILGRID_API_KEY;
+    // return this.login(saveUser);
   }
 }

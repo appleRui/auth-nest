@@ -17,6 +17,7 @@ Docker + NestJS + Typeorm の開発環境
 
 ### 起動
 ```
+cp .env.exmaple .env
 docker compose up -d --build
 ```
 
@@ -32,3 +33,10 @@ docker compose up -d --build
 [✓] ログインのたびに、確認トークン(verifyToken)の発行
 
 [✓] AuthenticationとverifyTokenの2つで認証を行う
+
+[　] MailGridを使用したメール認証
+
+### MailGridライセンス
+[ライセンス](https://support.sendgrid.kke.co.jp/hc/ja/articles/205590193?_gl=1*1rcm4yq*_ga*NjExOTUzMzgwLjE2NjU0MDAzODA.*_ga_JL4V7PSVHH*MTY2NTQwMDM3OS4xLjEuMTY2NTQwMDg4Ni4wLjAuMA..&_ga=2.69356825.826743628.1665400380-611953380.1665400380)
+
+
