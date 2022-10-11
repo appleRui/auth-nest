@@ -4,7 +4,6 @@ services:
     build:
       context: .
     environment:
-      APP_NAME: $APP_NAME
       CONTAINER_PORT: $CONTAINER_PORT
       MYSQL_DATABASE: $MYSQL_DATABASE
       MYSQL_USER: $MYSQL_USER
@@ -14,7 +13,7 @@ services:
     ports:
       - "${HOST_PORT}:${CONTAINER_PORT}"
     volumes:
-      - .:/$APP_NAME
+      - .:/auth-nest
     depends_on:
       - mysql
     command: yarn run start:dev
