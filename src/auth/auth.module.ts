@@ -10,6 +10,7 @@ import { jwtConstants } from 'src/auth/constants';
 import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { EmailVerification } from 'src/entities/EmailVerification';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EmailVerification } from 'src/entities/EmailVerification';
       signOptions: { expiresIn: '3600s' },
     }),
     ConfigModule,
+    NotificationModule,
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],

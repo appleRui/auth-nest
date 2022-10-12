@@ -1,10 +1,8 @@
-// import * as sendgrid from '@sendgrid/mail';
 import * as dayjs from 'dayjs';
 import * as bcrypt from 'bcrypt';
 import { generate } from 'rand-token';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities/User';
 import { Repository } from 'typeorm';
@@ -15,6 +13,7 @@ import {
   notFoundErrorHandle,
   unAuthorizedErrorHandle,
 } from 'src/utils/httpErrorHandleUtils';
+import { MailClient } from 'src/notification/mail/mailClient';
 
 type VerifyParams = {
   signature: string;
@@ -30,10 +29,8 @@ export class AuthService {
     @InjectRepository(EmailVerification)
     private readonly emailVerificationRepository: Repository<EmailVerification>,
     private readonly jwtService: JwtService,
-    private configService: ConfigService,
-  ) {
-    this.MAILGRID_API_KEY = this.configService.get<string>('MAILGRID_API_KEY');
-  }
+    private readonly mailClient: MailClient,
+  ) {}
 
   async searchUser(email: string) {
     const user = await this.userRepository.findOne({
@@ -83,7 +80,11 @@ export class AuthService {
         signature: generate(16),
         expiration: dayjs().add(30, 'm').valueOf().toString(),
       });
-    return `http://localhost:4000/auth/verify?signature=${signature}&expiration=${expiration}`;
+    this.mailClient.send({
+      to: user.email,
+      subject: '仮登録完了のお知らせ',
+      message: `http://localhost:4000/auth/verify?signature=${signature}&expiration=${expiration}`,
+    });
   }
 
   async verify(params: VerifyParams) {
@@ -94,6 +95,7 @@ export class AuthService {
         },
       })
       .catch(() => notFoundErrorHandle());
+    // 有効期限が過ぎていないか検証
     if (!dayjs(findToken.expiration).isBefore(dayjs())) {
       badRequestErrorHandle(
         'This is a link whose expiration has been exceeded.',
@@ -104,6 +106,7 @@ export class AuthService {
         email: findToken.email,
       },
     });
+    // 既に認証されているか検証する
     if (findUser.isVerify === true)
       badRequestErrorHandle('Already an authorized user.');
     const updateVerifyUser = await this.userRepository.save({

@@ -5,6 +5,7 @@ import { Connection } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import ormConfig from 'ormconfig';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     UsersModule,
     AuthModule,
+    NotificationModule,
   ],
 })
 export class AppModule {
