@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity('users')
+@Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -15,5 +16,8 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
-  verifyToken: string;
+  verifyToken: string | null = null;
+
+  @Column('boolean', { default: false })
+  isVerify: boolean;
 }

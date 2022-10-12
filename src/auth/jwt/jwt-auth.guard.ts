@@ -1,13 +1,9 @@
-import {
-  ExecutionContext,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import jwt_decode from 'jwt-decode';
 import { AuthGuard } from '@nestjs/passport';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/user/users.service';
 import { JwtPayload } from 'src/auth/jwt/jwt';
+import { unAuthorizedErrorHandle } from 'src/utils/httpErrorHandleUtils';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -37,6 +33,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     try {
       const payload: JwtPayload = jwt_decode(jwtToken);
       const userDetail = await this.usersService.findOne(payload.sub);
+      // メール認証していない時もfalse
+      if (!userDetail.isVerify) return false;
       return userDetail.verifyToken === verifyToken;
     } catch {
       return false;
@@ -52,8 +50,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request: Request = context.switchToHttp().getRequest();
     // リフレッシュトークンの検証
     const isValidVerifyToken = await this.checkVerifyToken(request);
-    if (!isValidVerifyToken)
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    if (!isValidVerifyToken) unAuthorizedErrorHandle();
     // JWT検証
     return super.canActivate(context) as boolean;
   }
