@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/User';
+import { User } from 'src/database/entities/User';
 import { notFoundErrorHandle } from 'src/utils/httpErrorHandleUtils';
 import { Repository } from 'typeorm';
 

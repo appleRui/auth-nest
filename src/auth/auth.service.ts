@@ -4,10 +4,10 @@ import { generate } from 'rand-token';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/entities/User';
+import { User } from 'src/database/entities/User';
 import { Repository } from 'typeorm';
 import { SignUpDto } from './dto/SignUp.dto';
-import { EmailVerification } from 'src/entities/EmailVerification';
+import { EmailVerification } from 'src/database/entities/EmailVerification';
 import {
   badRequestErrorHandle,
   notFoundErrorHandle,
@@ -83,7 +83,7 @@ export class AuthService {
     this.mailClient.send({
       to: user.email,
       subject: '仮登録完了のお知らせ',
-      message: `http://localhost:4000/auth/verify?signature=${signature}&expiration=${expiration}`,
+      text: `以下のURLより本登録を行ってください。\nhttp://localhost:4000/auth/verify?signature=${signature}&expiration=${expiration}`,
     });
   }
 
