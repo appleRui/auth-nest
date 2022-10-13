@@ -17,18 +17,17 @@ export class MailClient {
   send({
     to,
     subject,
-    message,
+    text,
   }: {
     to: string;
     subject: string;
-    message: string;
+    text: string;
   }): void {
     this.sendGridInstance.send({
       to,
       from: this.FORM_EMAIL ?? 'test@example.com',
       subject,
-      text: message,
-      html: `<a href=${message}>登録を完了する</a>`,
+      text,
     });
   }
 }
